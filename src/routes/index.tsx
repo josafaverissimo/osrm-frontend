@@ -97,21 +97,14 @@ function DraggableMarker({
 }) {
 	const [draggable, setDraggable] = useState(true);
 	const [position, setPosition] = useState(positionProp);
-	const markerRef = useRef(null);
-	const eventHandlers = useMemo(
-		() => ({
-			dragend() {
-				const marker = markerRef.current;
-				if (marker != null) {
-					const nextPos = marker.getLatLng()
+	const positionRef = useRef(position);
+	const markerRef = useRef<any>(null);
 
-					onChangePosition(position, nextPos)
-					setPosition(nextPos);
-				}
-			},
-		}),
-		[],
-	);
+	// Atualiza o valor mais recente de position
+	useEffect(() => {
+		positionRef.current = position;
+	}, [position]);
+
 	const toggleDraggable = useCallback(() => {
 		setDraggable((d) => !d);
 	}, []);
@@ -119,11 +112,20 @@ function DraggableMarker({
 	return (
 		<Marker
 			draggable={draggable}
-			eventHandlers={eventHandlers}
+			eventHandlers={{
+				dragend() {
+					const marker = markerRef.current;
+					if (marker != null) {
+						const nextPos = marker.getLatLng();
+
+						onChangePosition(positionRef.current, nextPos);
+						setPosition(nextPos);
+					}
+				},
+			}}
 			position={position}
 			ref={markerRef}
-		>
-		</Marker>
+		/>
 	);
 }
 
